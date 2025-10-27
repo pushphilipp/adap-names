@@ -33,7 +33,7 @@ export class Name {
      * Special characters are not escaped (creating a human-readable string)
      * Users can vary the delimiter character to be used
      */
-    // @methodtype conversion-method
+    // @methodtype conversion-method 
     public asString(delimiter: string = this.delimiter): string {
         return this.components.join(delimiter);
     }
