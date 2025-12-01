@@ -1,4 +1,5 @@
-import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
+import { MethodFailedException } from "../common/MethodFailedException";
 import { Name } from "./Name";
 import { AbstractName } from "./AbstractName";
 
@@ -6,64 +7,68 @@ export class StringArrayName extends AbstractName {
 
     protected components: string[] = [];
 
+    // @methodproperty constructor
     constructor(source: string[], delimiter?: string) {
-        super();
-        throw new Error("needs implementation or deletion");
+        IllegalArgumentException.assert(source !== null && source !== undefined, "Source array must be provided");
+        super(delimiter);
+
+        this.components = source.slice();
+        this.assertInvariant();
     }
 
-    public clone(): Name {
-        throw new Error("needs implementation or deletion");
+    // @methodtype helper-method
+    protected getCloneData(components: string[]): object {
+        return {
+            components: { value: components.slice(), writable: true, enumerable: true, configurable: true }
+        };
     }
 
-    public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public asDataString(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEqual(other: Name): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getHashCode(): number {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
+    // @methodtype get-method
     public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.components.length;
     }
 
+    // @methodtype get-method
     public getComponent(i: number): string {
-        throw new Error("needs implementation or deletion");
+        this.assertValidIndex(i);
+        return this.components[i];
     }
 
-    public setComponent(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
+    // @methodtype set-method
+    public setComponent(i: number, c: string): void {
+        this.assertValidIndex(i);
+        IllegalArgumentException.assert(c !== null && c !== undefined, "Component must be provided");
+        this.components[i] = c;
+        MethodFailedException.assert(this.components[i] === c, "Component must be updated");
     }
 
-    public insert(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
+    // @methodtype command-method
+    public insert(i: number, c: string): void {
+        this.assertValidIndex(i, true);
+        IllegalArgumentException.assert(c !== null && c !== undefined, "Component must be provided");
+        this.components.splice(i, 0, c);
+        MethodFailedException.assert(this.components[i] === c, "Component must be inserted");
     }
 
-    public append(c: string) {
-        throw new Error("needs implementation or deletion");
+    // @methodtype command-method
+    public append(c: string): void {
+        IllegalArgumentException.assert(c !== null && c !== undefined, "Component must be provided");
+        this.components.push(c);
+        MethodFailedException.assert(this.components[this.components.length - 1] === c, "Component must be appended");
     }
 
-    public remove(i: number) {
-        throw new Error("needs implementation or deletion");
+    // @methodtype command-method
+    public remove(i: number): void {
+        this.assertValidIndex(i);
+        this.components.splice(i, 1);
+        MethodFailedException.assert(this.components.length >= 0, "Component must be removed");
     }
 
-    public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+    private assertValidIndex(i: number, allowEnd: boolean = false): void {
+        const upperBound = allowEnd ? this.components.length : this.components.length - 1;
+        IllegalArgumentException.assert(Number.isInteger(i), "Index must be an integer");
+        IllegalArgumentException.assert(i >= 0, "Index must be non-negative");
+        IllegalArgumentException.assert(i <= upperBound, "Index out of bounds");
     }
+
 }
