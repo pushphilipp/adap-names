@@ -17,6 +17,11 @@ import { Printable } from "../common/Printable";
 export interface Name extends Cloneable, Printable, Equality {
 
     /**
+     * Returns shallow copy (clone) of this Name instance
+     */
+    clone(): Name;
+
+    /**
      * Returns true, if number of components == 0; else false
      */
     isEmpty(): boolean;
