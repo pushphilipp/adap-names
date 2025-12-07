@@ -1,5 +1,6 @@
 import { IllegalArgumentException } from "../common/IllegalArgumentException";
 import { InvalidStateException } from "../common/InvalidStateException";
+import { ServiceFailureException } from "../common/ServiceFailureException";
 
 import { Name } from "../names/Name";
 import { Directory } from "./Directory";
@@ -10,6 +11,8 @@ export class Node {
     protected parentNode: Directory;
 
     constructor(bn: string, pn: Directory) {
+        IllegalArgumentException.assert(pn !== null && pn !== undefined, "Parent directory must be provided");
+        IllegalArgumentException.assert(bn !== null && bn !== undefined, "Base name must be provided");
         this.doSetBaseName(bn);
         this.parentNode = pn; // why oh why do I have to set this
         this.initialize(pn);
@@ -21,6 +24,7 @@ export class Node {
     }
 
     public move(to: Directory): void {
+        IllegalArgumentException.assert(to !== null && to !== undefined, "Target directory must be provided");
         this.parentNode.removeChildNode(this);
         to.addChildNode(this);
         this.parentNode = to;
@@ -33,7 +37,12 @@ export class Node {
     }
 
     public getBaseName(): string {
-        return this.doGetBaseName();
+        const bn = this.doGetBaseName();
+        InvalidStateException.assert(bn !== null && bn !== undefined, "Base name must be defined");
+        if (this.parentNode !== this) {
+            InvalidStateException.assert(bn.length > 0, "Base name must not be empty");
+        }
+        return bn;
     }
 
     protected doGetBaseName(): string {
@@ -41,6 +50,7 @@ export class Node {
     }
 
     public rename(bn: string): void {
+        IllegalArgumentException.assert(bn !== null && bn !== undefined, "Base name must be provided");
         this.doSetBaseName(bn);
     }
 
@@ -57,7 +67,32 @@ export class Node {
      * @param bn basename of node being searched for
      */
     public findNodes(bn: string): Set<Node> {
-        throw new Error("needs implementation or deletion");
+        IllegalArgumentException.assert(bn !== null && bn !== undefined, "Base name must be provided");
+
+        try {
+            const matches: Set<Node> = new Set<Node>();
+            this.doFindNodes(bn, matches);
+            return matches;
+        } catch (ex) {
+            if (ex instanceof InvalidStateException) {
+                throw new ServiceFailureException("failed to search nodes", ex);
+            }
+            throw ex;
+        }
+    }
+
+    // @methodtype helper-method
+    protected doFindNodes(bn: string, matches: Set<Node>): void {
+        const baseName = this.getBaseName();
+        if (baseName === bn) {
+            matches.add(this);
+        }
+
+        const maybeDir = this as unknown as Directory;
+        const children: Iterable<Node> = (maybeDir as any).childNodes ?? [];
+        for (const child of children) {
+            child.doFindNodes(bn, matches);
+        }
     }
 
 }
