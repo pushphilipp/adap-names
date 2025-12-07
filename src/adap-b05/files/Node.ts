@@ -39,7 +39,7 @@ export class Node {
     public getBaseName(): string {
         const bn = this.doGetBaseName();
         InvalidStateException.assert(bn !== null && bn !== undefined, "Base name must be defined");
-        if (this.parentNode !== this) {
+        if (this.parentNode !== (this as unknown as Directory)) {
             InvalidStateException.assert(bn.length > 0, "Base name must not be empty");
         }
         return bn;
